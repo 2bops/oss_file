@@ -1,0 +1,5 @@
+name             "oss_file"
+maintainer       "Feng Gao"
+maintainer_email "gaoao0114@163.com"
+description      "Fuck The GFW"
+version          "0.0.1"
