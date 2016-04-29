@@ -15,25 +15,24 @@ module OSSFileLib
     return headers
   end
   
-  def self.get_md5_from_oss(bucket,path,oss_access_key_id,oss_secret_access_key,region)
+  def self.get_md5_from_oss(bucket,path,oss_access_key_id,oss_secret_access_key,region,internal)
     now, auth_string = get_oss_auth("HEAD", bucket,path,oss_access_key_id,oss_secret_access_key)
 
     headers = build_headers(now, auth_string)
     region = "hangzhou" if region.nil?
-    endpoint = build_endpoint(region)
+    endpoint = build_endpoint(region,internal)
     response = RestClient.head('http://%s.%s%s' % [bucket,endpoint,path], headers)
 
     etag = response.headers[:etag].gsub('"','')
     return etag
   end
-  
 
-  def self.get_from_oss(bucket,path,oss_access_key_id,oss_secret_access_key,region)   
+  def self.get_from_oss(bucket,path,oss_access_key_id,oss_secret_access_key,region,internal)
     now, auth_string = get_oss_auth("GET", bucket,path,oss_access_key_id,oss_secret_access_key)
-    
+
     headers = build_headers(now, auth_string)
     region = "hangzhou" if region.nil?
-    endpoint = build_endpoint(region)
+    endpoint = build_endpoint(region,internal)
     response = RestClient::Request.execute(:method => :get, :url => 'http://%s.%s%s' % [bucket,endpoint,path], :raw_response => true, :headers => headers)
 
     return response
@@ -73,7 +72,7 @@ module OSSFileLib
     local_md5.hexdigest == oss_md5.downcase
   end
 
-  def self.build_endpoint(region)
+  def self.build_endpoint(region,internal)
       endpointlist = {
           "qingdao" => "oss-cn-qingdao.aliyuncs.com",
           "beijing" => "oss-cn-beijing.aliyuncs.com",
@@ -82,9 +81,14 @@ module OSSFileLib
           "shenzhen" => "oss-cn-shenzhen.aliyuncs.com",
           "shanghai" => "oss-cn-shanghai.aliyuncs.com",
           "ap-southeast-1" => "oss-ap-southeast-1.aliyuncs.com",
-          "us-west-1" => "oss-us-west-1.aliyuncs.com"
+          "us-west-1" => "oss-us-west-1.aliyuncs.com",
+          "us-east-1" => "oss-us-east-1.aliyuncs.com"
       }
-    return endpointlist[region]
+    if internal
+      return endpointlist[region].sub(/.aliyuncs/,'-internal.aliyuncs')
+    else
+      return endpointlist[region]
+    end
   end
 
 end

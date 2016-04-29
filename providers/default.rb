@@ -14,6 +14,7 @@ action :create do
   oss_access_key_id = new_resource.oss_access_key_id
   oss_secret_access_key = new_resource.oss_secret_access_key
   region = new_resource.region
+  internal = new_resource.internal
 
   # if credentials not set, raise 
   if oss_access_key_id.nil? && oss_secret_access_key.nil? 
@@ -21,7 +22,7 @@ action :create do
   end
 
   if ::File.exists?(new_resource.path)
-   oss_md5 = OSSFileLib::get_md5_from_oss(new_resource.bucket, remote_path, oss_access_key_id, oss_secret_access_key,region)
+   oss_md5 = OSSFileLib::get_md5_from_oss(new_resource.bucket, remote_path, oss_access_key_id, oss_secret_access_key,region,internal)
 
    if OSSFileLib::verify_md5_checksum(oss_md5,new_resource.path)
      Chef::Log.debug 'Skipping download, md5sum of local file matches file in OSS.'
@@ -30,7 +31,7 @@ action :create do
   end
 
   if download
-    response = OSSFileLib::get_from_oss(new_resource.bucket, remote_path, oss_access_key_id, oss_secret_access_key,region)
+    response = OSSFileLib::get_from_oss(new_resource.bucket, remote_path, oss_access_key_id, oss_secret_access_key,region,internal)
 
     ::FileUtils.mv(response.file.path, new_resource.path)
   end
